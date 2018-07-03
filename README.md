@@ -3,12 +3,15 @@
 使用webpack作为构建工具，搭建基于[antd](https://github.com/ant-design/ant-design) UI框架的[React](https://github.com/facebook/react)项目
 
 <h3 align="left">开发</h3>
+
 ```bash
 npm start
 ```
+
 通过浏览器访问http://localhost:3000
 
 <h3 align="left">发布</h3>
+
 ```bash
 npm run build
 ```
