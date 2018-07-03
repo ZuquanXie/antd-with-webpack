@@ -1,0 +1,9 @@
+# dependences
+/node_modules
+
+# production
+/dist
+/build
+
+# IDE
+/.idea
