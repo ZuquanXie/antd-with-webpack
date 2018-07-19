@@ -39,7 +39,14 @@ module.exports = {
     port: 3000,
     contentBase: path.resolve(__dirname, 'src/public'),
     before: customServer,
-    hot: true
+    hot: true,
+    /* 访问内容的重写（当http请求的地址匹配不到内容时，根据重写规则重写返回内容，可用于解决前端路由页面刷新时路由不匹配的问题） */
+    historyApiFallback: true // 简单配置
+    // historyApiFallback: {
+    //   rewrites: [
+    //     { from: /\*/, to: '/' }
+    //   ]
+    // }
   },
   module: {
     rules: [
@@ -78,6 +85,10 @@ module.exports = {
       new UglifyJsWebpackPlugin({
         sourceMap: true
       })
-    ]
+    ],
+    splitChunks: {
+      chunks: 'all',
+      name: true
+    }
   }
 };
