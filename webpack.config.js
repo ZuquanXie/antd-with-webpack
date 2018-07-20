@@ -18,10 +18,10 @@ const plugins = (() => {
   result.push(new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'src/templates/index.html'), favicon: path.resolve(__dirname, 'src/public/favicon.ico') }));
   if (!isDevMode) {
     result.push(new CleanWebpackPlugin([path.resolve(__dirname, 'build')]));
-    result.push(new MiniCssExtractPlugin({ filename: '[name].css', chunkFilename: '[id].css' }))
+    result.push(new MiniCssExtractPlugin({ filename: '[name].css', chunkFilename: '[id].css' }));
   }
   if (isDevMode) {
-    result.push(new webpack.HotModuleReplacementPlugin())
+    result.push(new webpack.HotModuleReplacementPlugin());
   }
   return result
 })();
@@ -29,7 +29,7 @@ const plugins = (() => {
 module.exports = {
   entry: path.resolve(__dirname, 'src/index.js'),
   output: {
-    filename: 'index.js',
+    filename: isDevMode ? '[name].[hash].js' : '[chunkHash].js',
     path: path.resolve(__dirname, 'build'),
     publicPath: '/'
   },
@@ -86,9 +86,17 @@ module.exports = {
         sourceMap: true
       })
     ],
+    runtimeChunk: 'single',
     splitChunks: {
       chunks: 'all',
-      name: true
+      name: true,
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all'
+        }
+      }
     }
   }
 };

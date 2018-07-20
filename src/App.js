@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Row, Col, Button } from 'antd'
+import { Row, Col } from 'antd'
 import './App.less'
 
 class App extends Component {
@@ -8,7 +8,7 @@ class App extends Component {
     this.state = {
       appName: 'AntDesign-With-Webpack',
       version: 'beta 1.0',
-      description: '一个使用webpack动态加载Ant-design组件的范例'
+      description: '一个使用webpack动态加载Ant-design组件的范例333'
     }
   }
   render () {
