@@ -12,29 +12,56 @@ const customServer = require('./src/server/index.js');
 /* less全局变量 */
 const lessModifyVars = require('./src/theme/lessModifyVars');
 
-/* 不同环境的插件 */
-const plugins = (() => {
-  const result = [];
-  result.push(new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'src/templates/index.html'), favicon: path.resolve(__dirname, 'src/public/favicon.ico') }));
-  if (!isDevMode) {
-    result.push(new CleanWebpackPlugin([path.resolve(__dirname, 'build')]));
-    result.push(new MiniCssExtractPlugin({ filename: '[name].css', chunkFilename: '[id].css' }));
+/* 插件 */
+const plugins = [
+  new HtmlWebpackPlugin({
+    template: path.resolve(__dirname, 'src/templates/index.html'),
+    favicon: path.resolve(__dirname, 'src/public/favicon.ico')
+  })
+];
+
+/* 代码分块 */
+const optimization = {
+  runtimeChunk: 'single',
+  splitChunks: {
+    chunks: 'all',
+    name: true,
+    cacheGroups: {
+      vendor: {
+        test: /[\\/]node_modules[\\/]/,
+        name: 'vendors',
+        chunks: 'all'
+      }
+    }
   }
-  if (isDevMode) {
-    result.push(new webpack.HotModuleReplacementPlugin());
-  }
-  return result
-})();
+};
+
+/* 开发模式 */
+if (process.env.NODE_ENV === 'development') {
+  plugins.push(new webpack.HotModuleReplacementPlugin())
+}
+
+/* 发布模式 */
+if (process.env.NODE_ENV === 'production') {
+  plugins.push(new CleanWebpackPlugin([path.resolve(__dirname, 'build')]));
+  plugins.push(new MiniCssExtractPlugin({ filename: '[name].css', chunkFilename: '[id].css' }));
+
+  optimization.minimizer = [
+    new UglifyJsWebpackPlugin({
+      sourceMap: true
+    })
+  ];
+}
 
 module.exports = {
   entry: path.resolve(__dirname, 'src/index.js'),
   output: {
-    filename: isDevMode ? '[name].[hash].js' : '[chunkHash].js',
+    filename: isDevMode ? '[name].js' : '[chunkHash].js',
     path: path.resolve(__dirname, 'build'),
     publicPath: '/'
   },
   mode: process.env.NODE_ENV,
-  devtool: isDevMode ? 'inline-source-map' : 'source-map',
+  devtool: isDevMode ? 'cheap-module-eval-source-map' : 'source-map',
   devServer: {
     port: 3000,
     contentBase: path.resolve(__dirname, 'src/public'),
@@ -80,23 +107,5 @@ module.exports = {
     ]
   },
   plugins,
-  optimization: {
-    minimizer: [
-      new UglifyJsWebpackPlugin({
-        sourceMap: true
-      })
-    ],
-    runtimeChunk: 'single',
-    splitChunks: {
-      chunks: 'all',
-      name: true,
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'all'
-        }
-      }
-    }
-  }
+  optimization
 };
