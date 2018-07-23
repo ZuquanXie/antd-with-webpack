@@ -3,5 +3,5 @@ module.exports = {
   '@primary-color': 'orange',
 
   // 字体图标的服务地址
-  '@icon-url': '"http://localhost:7007/antd_icon_font/iconfont"'
+  '@icon-url': '"/antd_icon_font/iconfont"'
 };

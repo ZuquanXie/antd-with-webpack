@@ -1,57 +1,20 @@
 const path = require('path');
-const isDevMode = process.env.NODE_ENV === 'development';
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const UglifyJsWebpackPlugin = require('uglifyjs-webpack-plugin');
-
-/* 自定义服务 */
-const customServer = require('./src/server/index.js');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 /* less全局变量 */
 const lessModifyVars = require('./src/theme/lessModifyVars');
 
-/* 不同环境的插件 */
-const plugins = (() => {
-  const result = [];
-  result.push(new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'src/templates/index.html'), favicon: path.resolve(__dirname, 'src/public/favicon.ico') }));
-  if (!isDevMode) {
-    result.push(new CleanWebpackPlugin([path.resolve(__dirname, 'build')]));
-    result.push(new MiniCssExtractPlugin({ filename: '[name].css', chunkFilename: '[id].css' }));
-  }
-  if (isDevMode) {
-    result.push(new webpack.HotModuleReplacementPlugin());
-  }
-  return result
-})();
-
-module.exports = {
+const config = {
   entry: path.resolve(__dirname, 'src/index.js'),
-  output: {
-    filename: isDevMode ? '[name].[hash].js' : '[chunkHash].js',
-    path: path.resolve(__dirname, 'build'),
-    publicPath: '/'
-  },
-  mode: process.env.NODE_ENV,
-  devtool: isDevMode ? 'inline-source-map' : 'source-map',
-  devServer: {
-    port: 3000,
-    contentBase: path.resolve(__dirname, 'src/public'),
-    before: customServer,
-    hot: true,
-    /* 访问内容的重写（当http请求的地址匹配不到内容时，根据重写规则重写返回内容，可用于解决前端路由页面刷新时路由不匹配的问题） */
-    historyApiFallback: true // 简单配置
-    // historyApiFallback: {
-    //   rewrites: [
-    //     { from: /\*/, to: '/' }
-    //   ]
-    // }
-  },
   module: {
     rules: [
       {
-        exclude: /node_modules/,
+        include: path.resolve(__dirname, 'src'),
         test: /\.js$/,
         use: [{
           loader: 'babel-loader',
@@ -64,14 +27,6 @@ module.exports = {
         }]
       },
       {
-        test: /\.(le|c)ss$/,
-        use: [
-          { loader: isDevMode ? 'style-loader' : MiniCssExtractPlugin.loader },
-          'css-loader',
-          { loader: 'less-loader', options: { javascriptEnabled: true, modifyVars: lessModifyVars } }
-        ]
-      },
-      {
         test: /\.(jpg|png|svg|gif|ico|mp4)$/,
         use: [
           { loader: 'file-loader', options: { outputPath: 'static' } }
@@ -79,24 +34,90 @@ module.exports = {
       }
     ]
   },
-  plugins,
-  optimization: {
-    minimizer: [
-      new UglifyJsWebpackPlugin({
-        sourceMap: true
-      })
-    ],
-    runtimeChunk: 'single',
-    splitChunks: {
-      chunks: 'all',
-      name: true,
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'all'
-        }
+};
+
+/* 插件 */
+const plugins = [
+  new HtmlWebpackPlugin({
+    template: path.resolve(__dirname, 'src/templates/index.html'),
+    favicon: path.resolve(__dirname, 'src/public/favicon.ico')
+  })
+];
+
+/* 代码分块 */
+const optimization = {};
+
+/* 开发模式 */
+if (process.env.NODE_ENV === 'development') {
+  plugins.push(new webpack.HotModuleReplacementPlugin());
+
+  config.output = {
+    filename: '[name].js',
+    path: '/build',
+    publicPath: '/',
+    pathinfo: false
+  };
+  config.devtool = 'cheap-module-eval-source-map';
+  config.devServer = {
+    port: 3000,
+      contentBase: path.resolve(__dirname, 'src/public'),
+      before: require(path.resolve(__dirname, 'src/server/index.js')),
+      hot: true,
+      /* 访问内容的重写（当http请求的地址匹配不到内容时，根据重写规则重写返回内容，可用于解决前端路由页面刷新时路由不匹配的问题） */
+      historyApiFallback: true
+  };
+  config.module.rules.push({
+    test: /\.(le|c)ss$/,
+    use: [
+      { loader: 'style-loader' },
+      'css-loader',
+      { loader: 'less-loader', options: { javascriptEnabled: true, modifyVars: lessModifyVars } }
+    ]
+  });
+  config.plugins = plugins;
+}
+
+/* 发布模式 */
+if (process.env.NODE_ENV === 'production') {
+  plugins.push(new CleanWebpackPlugin([path.resolve(__dirname, 'build')]));
+  plugins.push(new MiniCssExtractPlugin({ filename: '[name].[chunkHash].css', chunkFilename: '[name].[chunkHash].css' }));
+  plugins.push(new CopyWebpackPlugin([
+    { from: path.resolve(__dirname, 'src/public/antd_icon_font'), to: 'antd_icon_font', toType: 'dir'}
+  ]));
+
+  optimization.runtimeChunk = 'single';
+  optimization.splitChunks = {
+    chunks: 'all',
+    name: true,
+    cacheGroups: {
+      vendor: {
+        test: /[\\/]node_modules[\\/]/,
+        name: 'vendors',
+        chunks: 'all'
       }
     }
-  }
-};
+  };
+  optimization.minimizer = [
+    new UglifyJsWebpackPlugin({
+      sourceMap: false
+    })
+  ];
+
+  config.output = {
+    filename: '[name].[chunkHash].js',
+    path: path.resolve(__dirname, 'build'),
+    publicPath: '/'
+  };
+  config.module.rules.push({
+    test: /\.(le|c)ss$/,
+    use: [
+      { loader: MiniCssExtractPlugin.loader },
+      'css-loader',
+      { loader: 'less-loader', options: { javascriptEnabled: true, modifyVars: lessModifyVars } }
+    ]
+  });
+  config.plugins = plugins;
+  config.optimization = optimization;
+}
+
+module.exports = config;
