@@ -50,7 +50,6 @@ const optimization = {};
 if (process.env.NODE_ENV === 'development') {
   plugins.push(new webpack.HotModuleReplacementPlugin());
 
-  config.mode = 'development';
   config.output = {
     filename: '[name].js',
     path: '/build',
@@ -64,12 +63,7 @@ if (process.env.NODE_ENV === 'development') {
       before: require(path.resolve(__dirname, 'src/server/index.js')),
       hot: true,
       /* 访问内容的重写（当http请求的地址匹配不到内容时，根据重写规则重写返回内容，可用于解决前端路由页面刷新时路由不匹配的问题） */
-      historyApiFallback: true // 简单配置
-    // historyApiFallback: {
-    //   rewrites: [
-    //     { from: /\*/, to: '/' }
-    //   ]
-    // }
+      historyApiFallback: true
   };
   config.module.rules.push({
     test: /\.(le|c)ss$/,
@@ -80,13 +74,12 @@ if (process.env.NODE_ENV === 'development') {
     ]
   });
   config.plugins = plugins;
-  config.optimization = optimization;
 }
 
 /* 发布模式 */
 if (process.env.NODE_ENV === 'production') {
   plugins.push(new CleanWebpackPlugin([path.resolve(__dirname, 'build')]));
-  plugins.push(new MiniCssExtractPlugin({ filename: '[name].css', chunkFilename: '[id].css' }));
+  plugins.push(new MiniCssExtractPlugin({ filename: '[name].[chunkHash].css', chunkFilename: '[name].[chunkHash].css' }));
 
   optimization.runtimeChunk = 'single';
   optimization.splitChunks = {
@@ -106,9 +99,8 @@ if (process.env.NODE_ENV === 'production') {
     })
   ];
 
-  config.mode = 'production';
   config.output = {
-    filename: '[chunkHash].js',
+    filename: '[name].[chunkHash].js',
     path: path.resolve(__dirname, 'build'),
     publicPath: '/'
   };
