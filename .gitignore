@@ -4,6 +4,7 @@
 # production
 /dist
 /build
+/dll
 
 # IDE
 /.idea
