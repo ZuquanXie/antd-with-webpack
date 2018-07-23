@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const UglifyJsWebpackPlugin = require('uglifyjs-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 /* less全局变量 */
 const lessModifyVars = require('./src/theme/lessModifyVars');
@@ -80,6 +81,9 @@ if (process.env.NODE_ENV === 'development') {
 if (process.env.NODE_ENV === 'production') {
   plugins.push(new CleanWebpackPlugin([path.resolve(__dirname, 'build')]));
   plugins.push(new MiniCssExtractPlugin({ filename: '[name].[chunkHash].css', chunkFilename: '[name].[chunkHash].css' }));
+  plugins.push(new CopyWebpackPlugin([
+    { from: path.resolve(__dirname, 'src/public/antd_icon_font'), to: 'antd_icon_font', toType: 'dir'}
+  ]));
 
   optimization.runtimeChunk = 'single';
   optimization.splitChunks = {
