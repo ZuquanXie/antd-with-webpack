@@ -48,6 +48,10 @@ const optimization = {};
 
 /* 开发模式 */
 if (process.env.NODE_ENV === 'development') {
+  plugins.push(new webpack.DllReferencePlugin({
+    context: path.resolve(__dirname, 'dll'),
+    manifest: path.resolve(__dirname, 'dll/manifest.json')
+  }));
   plugins.push(new webpack.HotModuleReplacementPlugin());
 
   config.mode = 'development';
