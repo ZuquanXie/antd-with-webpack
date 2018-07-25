@@ -17,6 +17,9 @@ npm run build
 ```
 
 <h3 align="left">其他</h3>
+
 热更新：默认启用了热更新
+
 Less全局变量：由config目录下的less.js定义（主要用于重置antd的全局变量）
+
 本地Node服务：由local-service目录下index.js定义（用于开发模式下的前端数据模拟）
