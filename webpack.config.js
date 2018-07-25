@@ -6,8 +6,8 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const UglifyJsWebpackPlugin = require('uglifyjs-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-/* less全局变量 */
-const lessModifyVars = require('./src/theme/lessModifyVars');
+/* less全局变量（主要为了重置antd的less全局变量） */
+const lessModifyVars = require('./src/config/less.js');
 
 const config = {
   entry: path.resolve(__dirname, 'src/index.js'),
@@ -39,7 +39,7 @@ const config = {
 /* 插件 */
 const plugins = [
   new HtmlWebpackPlugin({
-    template: path.resolve(__dirname, 'src/templates/index.html'),
+    template: path.resolve(__dirname, 'src/index.html'),
     favicon: path.resolve(__dirname, 'src/public/favicon.ico')
   })
 ];
@@ -61,7 +61,7 @@ if (process.env.NODE_ENV === 'development') {
   config.devServer = {
     port: 3000,
       contentBase: path.resolve(__dirname, 'src/public'),
-      before: require(path.resolve(__dirname, 'src/server/index.js')),
+      before: require(path.resolve(__dirname, 'src/local-service/index.js')),
       hot: true,
       /* 访问内容的重写（当http请求的地址匹配不到内容时，根据重写规则重写返回内容，可用于解决前端路由页面刷新时路由不匹配的问题） */
       historyApiFallback: true
